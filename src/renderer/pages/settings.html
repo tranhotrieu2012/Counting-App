@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="../styles/settings.css">
+
+<div class="camera-settings">
+  <h1>Cài Đặt Camera</h1>
+  <p>Cấu hình sử dụng cho tất cả loại camera (Basler, Hik, Opt...)</p>
+  
+  <div class="setting-form">
+    <label for="camera-type">Loại Camera</label>
+    <select id="camera-type">
+      <option value="basler">Basler</option>
+      <option value="hik">Hikvision</option>
+      <option value="opt">Opt</option>
+      <option value="other">Khác</option>
+    </select>
+
+    <label for="camera-ip">IP / Device ID</label>
+    <input type="text" id="camera-ip" placeholder="Nhập IP hoặc Device ID">
+
+    <label for="resolution">Độ phân giải</label>
+    <select id="resolution">
+      <option>1920x1080</option>
+      <option>1280x720</option>
+      <option>640x480</option>
+      <option>Tùy chỉnh</option>
+    </select>
+
+    <label for="framerate">Tốc độ khung hình (FPS)</label>
+    <input type="number" id="framerate" min="1" max="240" value="30">
+
+    <label for="exposure">Exposure (ms)</label>
+    <input type="number" id="exposure" min="0" max="1000" value="50">
+
+    <label for="gain">Gain</label>
+    <input type="number" id="gain" min="0" max="20" value="1">
+
+    <label for="format">Định dạng</label>
+    <select id="format">
+      <option value="mjpeg">MJPEG</option>
+      <option value="h264">H.264</option>
+      <option value="raw">RAW</option>
+    </select>
+
+    <div class="button-group">
+      <button id="test-connection">Kiểm tra kết nối</button>
+      <button id="save-settings">Lưu Cài Đặt</button>
+      <button id="go-to-home">Quay về Home</button>
+    </div>
+  </div>
+</div>
+

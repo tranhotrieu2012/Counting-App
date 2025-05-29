@@ -1,0 +1,91 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: linear-gradient(90deg, #4e54c8, #8f94fb);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  color: white;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 18px;
+  border: 2px solid ;
+}
+QPushButton {
+    font: 12pt "Segoe UI";
+    background-color: rgb(232, 232, 232);
+    color: #e4e4e4;
+    object-fit: cover;
+    border: 2px solid #4CAF50;
+    border-radius: 8px; /* Bo góc mềm mại hơn */
+	height: 50px;
+    text-align: center;
+    cursor: pointer;
+    
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+    transition: all 0.3s ease-in-out; /* Hiệu ứng chuyển động mượt mà */
+}
+
+QPushButton:hover {
+    background-color: #4CAF50; /* Nền chuyển sang xanh khi hover */
+    color: white; /* Màu chữ chuyển thành trắng khi hover */
+    transform: scale(1.1); /* Tăng kích thước nút khi hover */
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* Đổ bóng mạnh mẽ hơn */
+    border-color: #45a049; /* Đổi màu viền khi hover */
+}
+
+QPushButton:pressed {
+    background-color: #45a049; /* Nền tối hơn khi nhấn */
+    transform: scale(0.98); /* Hiệu ứng co lại khi nhấn */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Đổ bóng nhẹ khi nhấn */
+}
+
+
+.logo img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid white;
+  transition: transform 0.3s ease;
+}
+
+.logo img:hover {
+  transform: scale(1.1);
+}
+
+.title {
+  font-size: 1.8rem;
+  background: linear-gradient(45deg, #ffffff, #e0e0e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.nav {
+  display: flex;
+  gap: 14px;
+}
+
+.header-btn {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.header-btn:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.header-btn i {
+  font-size: 1.2rem;
+}

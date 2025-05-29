@@ -1,0 +1,115 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f0f4f8, #ffffff);
+  color: #222;
+}
+
+.camera-settings {
+  width: 90%;
+  height: auto;
+  margin: 50px auto;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  backdrop-filter: blur(5px);
+  animation: fadeIn 0.8s ease;
+  overflow-y: auto;
+}
+
+h1 {
+  font-size: 32px;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+p {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #666;
+}
+
+.setting-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+input[type="text"], 
+input[type="number"], 
+select {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background: #fff;
+  color: #333;
+  font-size: 16px;
+  transition: 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: #00aaff;
+  box-shadow: 0 0 8px rgba(0, 170, 255, 0.3);
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.button-group button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  color: #fff;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.button-group button#test-connection {
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+}
+
+.button-group button#test-connection:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 180, 216, 0.3);
+}
+
+.button-group button#save-settings {
+  background: linear-gradient(135deg, #2bc016, #188a0d);
+}
+
+.button-group button#save-settings:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(43, 192, 22, 0.3);
+}
+
+.button-group button#go-to-home {
+  background: linear-gradient(135deg, #ff8c00, #d2691e);
+}
+
+.button-group button#go-to-home:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 140, 0, 0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

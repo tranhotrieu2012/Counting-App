@@ -1,0 +1,78 @@
+<link rel="stylesheet" href="../styles/labels.css" />
+<div class="labeling-container">
+  <!-- Sidebar với phần chọn thư mục -->
+  <div class="sidebar-label">
+    <h3>Parameter</h3>
+    <!-- Phần chọn thư mục -->
+    <div class="folder-selector">
+      <label for="folderBtn">Chọn folder chứa hình ảnh:</label>
+      <!-- Nút chọn folder thay cho input file -->
+      <button id="folderBtn">Open Folder</button>
+      <!-- Hiển thị đường dẫn folder đã chọn -->
+      <p id="folderPathDisplay"></p>
+    </div>
+
+    <label
+      >Thickness: <input id="thicknessInput" type="number" value="9"
+    /></label>
+    <label>Images: <input type="number" value="30" /></label>
+    <label>Image size: <input type="text" value="1520 x 2688" /></label>
+    <label
+      >Threshold:
+      <input id="thresholdInput" type="number" step="0.1" value="0.7"
+    /></label>
+    <label>Cycle Time: <span>38.8ms</span></label>
+    <label><input id="autoLabelCheckbox" type="checkbox" /> Auto Label</label>
+    <label><input type="checkbox" /> Remove</label>
+    <label
+      ><input id="showBoxCheckbox" type="checkbox" checked /> Show Box</label
+    >
+    <label><input type="checkbox" /> Show Full</label>
+    <label
+      ><input id="showPolylinesCheckbox" type="checkbox" checked /> Show
+      Polylines</label
+    >
+    <label>Zoom Factor: <input type="number" step="0.01" value="0.85" /></label>
+    <label for="epochsInput"
+      >Epochs: <input id="epochsInput" type="number" value="10"
+    /></label>
+    <label for="imgszInput"
+      >Image Size: <input id="imgszInput" type="number" value="1600"
+    /></label>
+    <label>Weight file: <input type="number" value="1" /></label>
+    <label for="workersInput"
+      >Workers: <input id="workersInput" type="number" value="1"
+    /></label>
+    <label for="batchSizeInput"
+      >Batch size: <input id="batchSizeInput" type="number" value="1"
+    /></label>
+  </div>
+
+  <!-- Khu vực hiển thị ảnh chính -->
+  <div class="main-view">
+    <div class="image-area">Khu vực hiển thị ảnh</div>
+  </div>
+
+  <!-- Khu vực hiển thị ảnh nhỏ (thumbnail) -->
+  <div class="thumbnail-view">
+    <!-- Các thumbnail sẽ được chèn vào đây thông qua JS -->
+  </div>
+
+  <!-- Khu vực Train Model -->
+  <div class="train-container">
+    <h3>Train Model</h3>
+    <button id="startTraining">Start Training</button>
+    <button id="stopTraining" disabled>Stop Training</button>
+    <div class="progress-bar-container">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+    <div class="bottomStatus">
+      <p>Training Time: <span id="trainingTime">0s</span></p>
+      <p>Status: <span id="trainingStatus">Waiting...</span></p>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.6.0/fabric.min.js"></script>
+
+
+

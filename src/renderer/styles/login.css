@@ -1,0 +1,75 @@
+/* Reset cơ bản */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Thiết lập cho body */
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Container đăng nhập */
+.login-container {
+  background: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Tiêu đề */
+.login-container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #4c6ef5;
+}
+
+/* Nhóm form */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Nút đăng nhập */
+button[type="submit"] {
+  width: 100%;
+  padding: 12px;
+  background: #4c6ef5;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button[type="submit"]:hover {
+  background: #365fc7;
+}
+
+/* Hiển thị lỗi */
+.error-message {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+}

@@ -1,0 +1,297 @@
+import cv2
+import threading
+import os
+import time
+import json
+import random
+import shutil
+import base64
+from flask import send_file
+
+from roboflow import Roboflow
+from flask import Flask, jsonify, Response, send_from_directory,request
+from pypylon import pylon
+from flask_cors import CORS
+from flask import send_from_directory 
+from flasgger import Swagger
+from ultralytics import YOLO
+
+app = Flask(__name__)
+
+# Load model YOLOv8 đã train
+# model = YOLO("./runs/detect/train/weights/best.pt")
+model = YOLO("./yolov8n.pt")
+
+
+# =====================================  Train Model  ===================================== 
+@app.route("/api/train", methods=["POST"])
+def train_model():
+    try:
+        data = request.json
+        print("Received training data:", data)  # Debug dữ liệu nhận được
+
+        # Chuyển đổi kiểu dữ liệu
+        dataset_path = str(data["dataset_path"])
+        thickness = int(data["thickness"])
+        threshold = float(data["threshold"])
+        epochs = int(data["epochs"])
+        imgsz = int(data["imgsz"])
+        batch = int(data["batch"])
+        workers = int(data["workers"])
+
+        # Gọi YOLO train
+        model = YOLO("yolov8n.pt")  
+        model.train(
+            data=dataset_path,
+            epochs=epochs,
+            imgsz=imgsz,
+            batch=batch,
+            workers=workers,
+        )
+
+        return jsonify({"success": True, "message": "Training started"}), 200
+
+    except Exception as e:
+        print("Error during training:", str(e))  # In lỗi ra terminal
+        return jsonify({"success": False, "message": str(e)}), 500  
+
+    
+# =====================================  Check python ready =====================================
+@app.route('/api/check_backend_ready', methods=["GET"])
+def check_backend_ready():
+    global camera
+    try:
+        print("Backend ready.")
+        return jsonify({"message":"Check backend finish"})
+    except Exception as e:
+        return jsonify({"message": f"Backend not ready: {e}"}),500
+    
+# =====================================  Connect camera ===================================== 
+@app.route('/api/connect_camera', methods=['POST'])
+def connect_camera():
+    
+    global camera
+    try:
+        camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
+        camera.Open()
+        print("Camera connected")
+        return jsonify({"message": "Camera connected successfully"})
+    except Exception as e:
+        print(f"Error connecting to camera: {e}")
+        return jsonify({"message": f"Error connecting to camera: {e}"}), 500
+
+# =====================================  Disconnect camera ===================================== 
+@app.route('/api/disconnect_camera', methods=['POST'])
+def disconnect_camera():
+    global camera
+    if camera is not None:
+        camera.Close()
+        camera = None
+        print("Camera disconnected")
+        return jsonify({"message": "Camera disconnected successfully"})
+    return jsonify({"message": "Camera is not connected"}), 400
+
+# =====================================  Trigger  ===================================== 
+# Thư mục để lưu hình ảnh
+IMAGE_FOLDER = "images"
+os.makedirs(IMAGE_FOLDER, exist_ok=True)
+
+# @app.route('/api/trigger', methods=['POST'])
+# def trigger():
+#     global camera
+#     if camera is None:
+#         return jsonify({"message": "Camera is not connected"}), 400
+
+#     start_time = time.time() # Thời gian bắt đầu
+#     try:
+#         # Kích hoạt camera và chụp ảnh
+#         grab_result = camera.GrabOne(1000)
+#         if grab_result.GrabSucceeded():
+#             image = grab_result.Array
+#             grab_result.Release()
+
+#             # Chuyển đổi mảng thành file tạm thời
+#             _, buffer = cv2.imencode('.jpg',image)
+#             temp_image_path = 'temp_image.jpg'
+#             with open(temp_image_path, 'wb') as temp_file:
+#                 temp_file.write(buffer)
+
+#             # Thực hiện dự đoán với Yolo
+#             results = model.predict(temp_image_path)
+
+#             # Đọc ảnh và vẽ bounding boxes
+#             image = cv2.imread(temp_image_path)
+#             for box in results[0].boxes:
+#                 x1, y1, x2, y2 = map(int, box.xyxy[0])  # Toạ độ của bounding box
+#                 confidence = box.conf[0]  # Độ chính xác
+#                 label = box.cls[0]  # Lớp (class)
+
+#                 # Vẽ bounding box
+#                 cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+#                 # Hiển thị nhãn và độ chính xác
+#                 cv2.putText(
+#                     image,
+#                     f"{model.names[int(label)]} {confidence:.2f}",
+#                     (x1, y1 - 10),
+#                     cv2.FONT_HERSHEY_SIMPLEX,
+#                     0.5,
+#                     (0, 255, 0),
+#                     2,
+#                 )
+
+#             # Chuyển đổi ảnh thành Base64
+#             _, buffer = cv2.imencode('.jpg', image)
+#             image_base64 = base64.b64encode(buffer).decode('utf-8')
+
+#             # Tính thời gian hoàn thành
+#             end_time = time.time() # Thời gian kết thúc
+#             cycle_time = (end_time - start_time)
+
+#             # Trả về kết quả
+#             detection_count = len(results[0].boxes)
+#             return jsonify({
+#                 "message": "Trigger successful",
+#                 "processed_image_url": f"data:image/jpeg;base64,{image_base64}",
+#                 "results": detection_count,
+#                 "cycle_time": f"{cycle_time:.2f}"
+#             })
+#         else:
+#             return jsonify({"message": "Error in trigger"}), 500
+#     except Exception as e:
+#         end_time = time.time()
+#         cycle_time = (end_time - start_time)
+#         return jsonify({
+#             "message": f"Error: {e}",
+#             "cycle_time":f"{cycle_time:.2f}"
+#         }), 500
+    
+
+@app.route('/api/trigger', methods=['POST'])
+def trigger():
+    start_time = time.time()  # Thời gian bắt đầu
+
+    try:
+        # Sử dụng hình ảnh có sẵn thay vì chụp từ camera
+        test_image_path = "./dataset/images/test/photo-2-16315062487832011764222.webp"  # Thay đổi đường dẫn ảnh test của bạn
+
+        if not os.path.exists(test_image_path):
+            return jsonify({"message": "Test image not found"}), 404
+        
+        # Thực hiện dự đoán với YOLO
+        results = model.predict(test_image_path)
+
+        # Đọc ảnh và vẽ bounding boxes
+        image = cv2.imread(test_image_path)
+        for box in results[0].boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0])  # Toạ độ bounding box
+            confidence = box.conf[0]  # Độ chính xác
+            label = box.cls[0]  # Lớp (class)
+
+            # Vẽ bounding box
+            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+            # Hiển thị nhãn và độ chính xác
+            cv2.putText(
+                image,
+                f"{model.names[int(label)]} {confidence:.2f}",
+                (x1, y1 - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (0, 255, 0),
+                2,
+            )
+
+        # Chuyển đổi ảnh thành Base64 để gửi về frontend
+        _, buffer = cv2.imencode('.jpg', image)
+        image_base64 = base64.b64encode(buffer).decode('utf-8')
+
+        # Tính thời gian hoàn thành
+        end_time = time.time()
+        cycle_time = (end_time - start_time)
+
+        # Trả về kết quả
+        detection_count = len(results[0].boxes)
+        return jsonify({
+            "message": "Trigger successful",
+            "processed_image_url": f"data:image/jpeg;base64,{image_base64}",
+            "results": detection_count,
+            "cycle_time": f"{cycle_time:.2f}"
+        })
+
+    except Exception as e:
+        end_time = time.time()
+        cycle_time = (end_time - start_time)
+        return jsonify({
+            "message": f"Error: {e}",
+            "cycle_time": f"{cycle_time:.2f}"
+        }), 500
+
+
+# Endpoint để phục vụ hình ảnh đã xử lý
+@app.route('/image/<filename>')
+def serve_image(filename):
+    return send_from_directory(IMAGE_FOLDER, filename)
+
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # Đường dẫn đến thư mục dataset
+# path: C:/AHSO/Camera-Control-Basler/my-electron-app/dataset
+
+# # Đường dẫn đầy đủ đến ảnh train, val, test
+# train: C:/AHSO/Camera-Control-Basler/my-electron-app/dataset/images/train
+# val: C:/AHSO/Camera-Control-Basler/my-electron-app/dataset/images/val
+# test: C:/AHSO/Camera-Control-Basler/my-electron-app/dataset/images/test  # (Tùy chọn) Thư mục ảnh test
+
+# # Danh sách các lớp đối tượng
+# names:
+#   0: class_1
+#   1: class_2
+#   2: class_3
+
+# Đường dẫn đến thư mục dataset
+path: ../dataset
+
+train: C:/AHSO/Camera-Control-Basler/my-electron-app - Copy/backend/dataset/images/train
+val: C:/AHSO/Camera-Control-Basler/my-electron-app - Copy/backend/dataset/images/val
+
+
+# Danh sách các lớp đối tượng
+names:
+  0: class_1
+  1: class_2
+  2: class_3
+
+  

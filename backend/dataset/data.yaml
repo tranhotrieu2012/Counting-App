@@ -1,0 +1,6 @@
+train: C:/AHSO/ElectronApp/backend/dataset/train/images
+val: C:/AHSO/ElectronApp/backend/dataset/valid/images
+test: C:/AHSO/ElectronApp/backend/dataset/test/images
+
+nc: 1  # Số lượng lớp (thay đổi nếu có nhiều lớp)
+names: ["object"]  # Đổi tên phù hợp với lớp của bạn

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Electron SPA App - Home</title>
+    <link rel="stylesheet" href="../styles/index.css" />
+    <!-- Thêm link tới FontAwesome nếu cần -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- <div class="loading" id="loading">
+      <p>Please waiting startup....</p>
+    </div> -->
+    <!-- Header và Sidebar được load qua Web Component -->
+    <app-header></app-header>
+    <app-sidebar></app-sidebar>
+
+    <!-- Container nội dung chính -->
+    <main id="content">
+      <div id="main-container">
+        <!-- Left Panel (70%) -->
+        <div id="left-panel">
+          <!-- Các nút điều khiển luôn nằm trên cùng -->
+          <section id="control-buttons">
+            <button id="camera-run" type="button">
+              <i class="fa-solid fa-play"></i> Run
+            </button>
+            <button id="camera-trigger" type="button">
+              <i class="fa-solid fa-bolt"></i> Trigger
+            </button>
+            <button id="camera-live" type="button">
+              <i class="fa-solid fa-video"></i> Live
+            </button>
+          </section>
+          <!-- Khu vực hiển thị hình ảnh (camera & processed image) -->
+          <section id="vision-display">
+            <div id="camera-feed-container" class="vision-panel">
+              <h2>Real-Time Camera Feed</h2>
+              <video id="camera-feed" autoplay muted playsinline></video>
+            </div>
+            <div id="processed-image-container" class="vision-panel">
+              <h2>Processed Image</h2>
+              <img id="processed-image" src="" alt="Processed Image" />
+            </div>
+          </section>
+        </div>
+
+        <!-- Right Panel (30%) -->
+        <div id="right-panel">
+          <section id="results-section">
+            <h2>Processing Results</h2>
+            <div id="result-status">
+              <p>Status: <span id="result-status-text">Pending...</span></p>
+              <p>Processing Time: <span id="processing-time">0</span> ms</p>
+            </div>
+            <div id="backend-response">
+              <h3>Backend Response</h3>
+              <p id="backend-result">Waiting for response...</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- Tải các script cần thiết -->
+    <script src="../js/router.js"></script>
+    <script src="../js/renderer.js"></script>
+    <script src="../components/header.js"></script>
+    <script src="../components/sidebar.js"></script>
+    <!-- Controller -->
+    <script src="../js/controller/index.js"></script>
+  </body>
+</html>

@@ -1,0 +1,341 @@
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const path = require("path");
+const fs = require("fs");
+const { spawn } = require("child_process");
+const yaml = require("js-yaml");
+
+let mainWindow;
+let loginWindow;
+
+function createLoginWindow() {
+  loginWindow = new BrowserWindow({
+    width: 600,
+    height: 700,
+    resizable: false,
+    frame: true, // Hoặc false nếu bạn muốn giao diện tùy chỉnh
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  loginWindow.loadFile(path.join(__dirname, "../renderer/pages/login.html"));
+  loginWindow.on("closed", () => (loginWindow = null));
+}
+
+function createMainWindow() {
+  mainWindow = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  mainWindow.maximize();
+  mainWindow.loadFile(path.join(__dirname, "../renderer/pages/index.html"));
+  mainWindow.on("closed", () => (mainWindow = null));
+}
+
+// Khởi tạo cửa sổ đăng nhập đầu tiên
+app.whenReady().then(createLoginWindow);
+
+// ================================ FILE TXT ================================
+// ipcMain.on("export-annotations", (event, yoloText, imagePath) => {
+//   // Kiểm tra imagePath
+//   if (!imagePath || typeof imagePath !== "string") {
+//     console.error("❌ imagePath không hợp lệ:", imagePath);
+//     event.reply("export-result", "error: imagePath không hợp lệ");
+//     return;
+//   }
+//   // if (!fs.existsSync(imagePath)) {
+//   //   console.error("❌ File ảnh không tồn tại:", imagePath);
+//   //   event.reply("export-result", "error: file ảnh không tồn tại");
+//   //   return;
+//   // }
+
+//   // Tạo thư mục labels nếu chưa tồn tại
+//   const labelsDir = path.join(
+//     __dirname,
+//     "..",
+//     "..",
+//     "backend",
+//     "dataset",
+//     "labels",
+//     "train"
+//   );
+//   if (!fs.existsSync(labelsDir)) {
+//     fs.mkdirSync(labelsDir, { recursive: true });
+//   }
+
+//   console.log("Image path:", imagePath);
+//   const baseName = path.basename(imagePath, path.extname(imagePath));
+//   const filePath = path.join(labelsDir, baseName + ".txt");
+
+//   // Ghi file .txt theo định dạng YOLOv8
+//   fs.writeFile(filePath, yoloText, (err) => {
+//     if (err) {
+//       console.error("❌ Lỗi khi lưu file labels:", err);
+//       event.reply("export-result", "error");
+//     } else {
+//       console.log(`✅ File labels đã lưu: ${filePath}`);
+//       event.reply("export-result", "success");
+//     }
+//   });
+// });
+ipcMain.on("export-annotations", (event, yoloText, imagePath, updateResult) => {
+  console.log(`updateResult: ${updateResult}`);
+
+  // Kiểm tra imagePath
+  if (!imagePath || typeof imagePath !== "string") {
+    console.error("❌ imagePath không hợp lệ:", imagePath);
+    event.reply("export-result", "error: imagePath không hợp lệ");
+    return;
+  }
+
+  // Đặt đường dẫn cố định cho thư mục labels
+  const defaultLabelsDir =
+    "C:/AHSO/Camera-Control-Basler/my-electron-app - Copy/backend/dataset/labels";
+
+  // Tạo thư mục labels/train và labels/val theo cấu trúc cố định
+  const labelsTrainDir = path.join(defaultLabelsDir, "train");
+  const labelsValDir = path.join(defaultLabelsDir, "val");
+
+  // Kiểm tra và tạo nếu không tồn tại
+  if (!fs.existsSync(labelsTrainDir)) {
+    fs.mkdirSync(labelsTrainDir, { recursive: true });
+  }
+  if (!fs.existsSync(labelsValDir)) {
+    fs.mkdirSync(labelsValDir, { recursive: true });
+  }
+
+  console.log("Image path:", imagePath);
+  const baseName = path.basename(imagePath, path.extname(imagePath));
+
+  // Tạo đường dẫn file cho cả train và val
+  const trainFilePath = path.join(labelsTrainDir, baseName + ".txt");
+  const valFilePath = path.join(labelsValDir, baseName + ".txt");
+
+  // Ghi file .txt cho cả train và val sử dụng Promise để đảm bảo hoàn thành trước khi gửi phản hồi
+  const writeTrain = new Promise((resolve, reject) => {
+    fs.writeFile(trainFilePath, yoloText, (err) => {
+      if (err) {
+        console.error("❌ Lỗi khi lưu file labels (train):", err);
+        reject(err);
+      } else {
+        console.log(`✅ File labels đã lưu (train): ${trainFilePath}`);
+        resolve();
+      }
+    });
+  });
+
+  const writeVal = new Promise((resolve, reject) => {
+    fs.writeFile(valFilePath, yoloText, (err) => {
+      if (err) {
+        console.error("❌ Lỗi khi lưu file labels (val):", err);
+        reject(err);
+      } else {
+        console.log(`✅ File labels đã lưu (val): ${valFilePath}`);
+        resolve();
+      }
+    });
+  });
+
+  Promise.all([writeTrain, writeVal])
+    .then(() => {
+      event.reply("export-result", "success");
+    })
+    .catch((err) => {
+      event.reply("export-result", "error");
+    });
+});
+
+
+// Xử lý đọc annotation YOLOv8
+ipcMain.handle("read-annotations", async (event, imageName) => {
+  const baseName = path.parse(imageName).name;
+
+  const labelsDir = path.join(
+    __dirname,
+    "..",
+    "..",
+    "backend",
+    "dataset",
+    "labels",
+    "train"
+  );
+  const filePath = path.join(labelsDir, `${baseName}.txt`);
+
+  try {
+    if (fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, "utf8");
+      return fileContent;
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.error("Error reading annotations file:", err);
+    return null;
+  }
+});
+// Gửi đường dẫn của folder hình ảnh
+ipcMain.handle("select-image-folder", async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+  if (!result.canceled && result.filePaths && result.filePaths[0]) {
+    return result.filePaths[0];
+  }
+  return null;
+});
+// Handler đọc danh sách file ảnh từ folder
+ipcMain.handle("read-images-from-folder", async (event, folderPath) => {
+  try {
+    const files = fs.readdirSync(folderPath);
+    // Lọc ra các file có định dạng hình ảnh
+    const imageFiles = files.filter((file) => {
+      const ext = path.extname(file).toLowerCase();
+      return [".png", ".jpg", ".jpeg", ".gif", ".bmp"].includes(ext);
+    });
+    // Chuyển đổi thành đường dẫn tuyệt đối cho từng file
+    const absolutePaths = imageFiles.map((file) => path.join(folderPath, file));
+    return absolutePaths;
+  } catch (error) {
+    console.error("Error reading folder:", error);
+    return [];
+  }
+});
+
+// Handler cập nhật dataset.yaml
+// ipcMain.handle("update-dataset", async (event, folderPath) => {
+//   console.log("update-datasetupdate-datasetupdate-datasetupdate-dataset");
+//   try {
+//     // Cấu hình dataset theo định dạng YOLO (ví dụ sử dụng cùng folder cho train và val)
+//     const datasetConfig = {
+//       train: folderPath,
+//       val: folderPath, // Nếu có folder validation khác, thay đổi ở đây
+//       nc: 2, // Số lượng class (cập nhật theo dự án của bạn)
+//       names: ["OK", "NG"], // Danh sách tên class (cập nhật theo dự án)
+//     };
+
+//     const yamlContent = yaml.dump(datasetConfig, {
+//       sortKeys: false,
+//       lineWidth: -1,
+//     });
+//     // Đường dẫn file dataset.yaml (cập nhật theo cấu trúc dự án của bạn)
+//     const datasetFilePath = path.join(
+//       __dirname,
+//       "..",
+//       "..",
+//       "backend",
+//       "dataset",
+//       "data.yaml"
+//     );
+
+//     // Tạo thư mục nếu chưa tồn tại
+//     const datasetDir = path.dirname(datasetFilePath);
+//     if (!fs.existsSync(datasetDir)) {
+//       fs.mkdirSync(datasetDir, { recursive: true });
+//     }
+
+//     fs.writeFileSync(datasetFilePath, yamlContent, "utf8");
+//     console.log("dataset.yaml updated at:", datasetFilePath);
+//     return {
+//       success: true,
+//       message: "Dataset updated successfully",
+//       path: datasetFilePath,
+//     };
+//   } catch (err) {
+//     console.error("Error updating dataset.yaml:", err);
+//     return { success: false, message: err.message };
+//   }
+// });
+ipcMain.handle("update-dataset", async (event, folderPath) => {
+  console.log("🔄 Cập nhật data.yaml...");
+
+  try {
+    // Đặt đường dẫn cố định cho thư mục labels
+    const defaultLabelsDir =
+      "C:/AHSO/Camera-Control-Basler/my-electron-app - Copy/backend/dataset/labels";
+
+    // Đặt đường dẫn cho thư mục train và val từ folderPath (có thể thay đổi theo người dùng chọn)
+    const labelsTrainPath = path.join(defaultLabelsDir, "train");
+    const labelsValPath = path.join(defaultLabelsDir, "val");
+
+    // Kiểm tra nếu thư mục labels/train và labels/val có tồn tại không
+    if (!fs.existsSync(labelsTrainPath) || !fs.existsSync(labelsValPath)) {
+      console.error("❌ Không tìm thấy thư mục labels/train hoặc labels/val!");
+      return {
+        success: false,
+        message: "Thư mục labels/train hoặc labels/val không tồn tại!",
+      };
+    }
+
+    // Cấu hình dataset với đường dẫn tùy biến cho train và val, còn labels luôn là cố định
+    const datasetConfig = {
+      train: folderPath, // Đường dẫn tùy biến cho train (do người dùng chọn)
+      val: folderPath, // Đường dẫn tùy biến cho val (do người dùng chọn)
+      nc: 2, // Số lượng class
+      names: ["OK", "NG"], // Danh sách các class
+    };
+
+    // Tạo nội dung YAML
+    const yamlContent = yaml.dump(datasetConfig, {
+      sortKeys: false,
+      lineWidth: -1,
+    });
+
+    // In nội dung YAML ra console để kiểm tra
+    console.log("Nội dung YAML tạo được:", yamlContent);
+
+    // Lưu file data.yaml vào thư mục cha của folderPath
+    const parentDir = path.dirname(folderPath); // Thư mục cha chứa images
+    const datasetFilePath = path.join(parentDir, "data.yaml");
+
+    // Tạo thư mục cha nếu chưa tồn tại
+    const datasetDir = path.dirname(datasetFilePath);
+    if (!fs.existsSync(datasetDir)) {
+      fs.mkdirSync(datasetDir, { recursive: true });
+    }
+
+    // Ghi nội dung vào file data.yaml
+    fs.writeFileSync(datasetFilePath, yamlContent, "utf8");
+
+    // Kiểm tra nếu file đã được ghi thành công
+    if (fs.existsSync(datasetFilePath)) {
+      console.log("✅ data.yaml đã được cập nhật:", datasetFilePath);
+    } else {
+      console.error("❌ Không thể ghi file data.yaml!");
+    }
+
+    return {
+      success: true,
+      message: "Dataset updated successfully",
+      path: datasetFilePath,
+    };
+  } catch (err) {
+    console.error("❌ Lỗi cập nhật data.yaml:", err);
+    return { success: false, message: err.message };
+  }
+});
+
+// IPC: Sau khi login thành công, đóng cửa sổ login và mở cửa sổ chính
+ipcMain.on("login-success", () => {
+  if (loginWindow) {
+    loginWindow.close();
+  }
+  createMainWindow();
+});
+
+// IPC: Lắng nghe sự kiện "logout" từ renderer
+ipcMain.on("logout", () => {
+  if (mainWindow) {
+    mainWindow.close();
+  }
+  createLoginWindow();
+});
+
+// Đóng app khi tất cả cửa sổ đã đóng (trừ macOS)
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});

@@ -1,0 +1,198 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap");
+
+/* Sử dụng grid với 2 hàng và 3 cột */
+.labeling-container {
+  display: grid;
+  grid-template-areas:
+    "sidebar main thumbnail"
+    "sidebar train train";
+  grid-template-columns: 22% 60% 18%;
+  grid-template-rows: 70% 30%;
+  /* height: 100vh; */
+  height: calc(100vh - 100px);
+  /* width: 90%; */
+  gap: 10px;
+  padding: 10px;
+  margin-right: 10px;
+}
+
+/* Sidebar (bên trái) */
+.sidebar-label {
+  grid-area: sidebar;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 10px;
+  overflow: auto;
+  height: 720px;
+}
+
+.sidebar-label h3 {
+  text-align: center;
+  font-size: 1.3em;
+  margin-bottom: 10px;
+}
+
+.sidebar-label label {
+  font-size: 0.9em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.sidebar-label input[type="number"],
+.sidebar-label input[type="text"],
+.sidebar-label input[type="file"] {
+  width: 100%;
+  padding: 6px;
+  border: none;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+/* Main view (ở giữa) */
+.main-view {
+  grid-area: main;
+  background: #ffffff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  height: 500px;
+}
+
+.image-area {
+  width: 90%;
+  height: 100%;
+  border: 2px dashed #bdc3c7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #7f8c8d;
+}
+
+/* Thumbnail view (bên phải) */
+.thumbnail-view {
+  grid-area: thumbnail;
+  background: #ffffff;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 10px;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: auto;
+  height: 500px;
+}
+
+.thumbnail-image {
+  width: 80%;
+  border-radius: 8px;
+  border: 1px solid #bdc3c7;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.thumbnail-image:hover {
+  transform: scale(1.05);
+}
+
+/* Train Model (hàng dưới, kéo dài qua main và thumbnail) */
+.train-container {
+  grid-area: train;
+  padding: 5px;
+  text-align: center;
+  border-radius: 10px;
+  box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.1);
+  height: 150px;
+  margin-top: 50px;
+}
+
+.train-container h3 {
+  font-size: 1.3em;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.train-container button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  margin: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+.train-container button:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.train-container button:hover:not(:disabled) {
+  background: #764ba2;
+}
+
+.progress-bar-container {
+  width: 80%;
+  height: 8px;
+  background: #e0e6ed;
+  border-radius: 5px;
+  margin: 5px auto;
+  overflow: hidden;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: #667eea;
+  transition: width 0.5s ease;
+}
+.bottomStatus {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .labeling-container {
+    grid-template-columns: 25% 55% 20%;
+    grid-template-rows: 80% 20%;
+  }
+}
+
+@media (max-width: 768px) {
+  .labeling-container {
+    grid-template-areas:
+      "sidebar"
+      "main"
+      "thumbnail"
+      "train";
+    grid-template-columns: 100%;
+    grid-template-rows: auto;
+  }
+  .sidebar-label,
+  .main-view,
+  .thumbnail-view,
+  .train-container {
+    width: 100%;
+  }
+  .thumbnail-view {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .thumbnail-image {
+    width: 30%;
+  }
+}
